@@ -312,33 +312,156 @@ app.view('leavebord_callback', async ({ack, body, view, client}) => {
         const date = view.state.values.date.datepicker.selected_date;
         const target = view.state.values.target.static_select.selected_option.value;
         const info = view.state.values.info.plain_text.value;
+        const leader = view.state.values.leader.multi_users_select.selected_user;
         const user = body.user.name;
         const officeManager = "UPC4TGS2H"; // Кому приходит сообщение
 
         await ack();
-        const txt = `Пользователь: ${user} \nДата: ${date} \nДействие:  ${target} \nКоментарий: ${info}`;
+        //const txt = `Пользователь: ${user} \nДата: ${date} \nДействие:  ${target} \nКоментарий: ${info}`;
+        // const txt = {
+        //     "blocks": [
+        //         {
+        //             "type": "section",
+        //             "text": {
+        //                 "type": "mrkdwn",
+        //                 "text": "You have a new leaveboard request from"+user
+        //             }
+        //         },
+        //         {
+        //             "type": "section",
+        //             "fields": [
+        //                 {
+        //                     "type": "mrkdwn",
+        //                     "text": "*Type:* "+target
+        //                 },
+        //                 {
+        //                     "type": "mrkdwn",
+        //                     "text": "*When:* "+date
+        //                 },
+        //                 {
+        //                     "type": "mrkdwn",
+        //                     "text": "*Comment:* "+info
+        //                 }
+        //             ]
+        //         },
+        //         {
+        //             "type": "actions",
+        //             "elements": [
+        //                 {
+        //                     "type": "button",
+        //                     "text": {
+        //                         "type": "plain_text",
+        //                         "text": "Approve"
+        //                     },
+        //                     "style": "primary",
+        //                     "value": "click_me_1"
+        //                 },
+        //                 {
+        //                     "type": "button",
+        //                     "text": {
+        //                         "type": "plain_text",
+        //                         "text": "Deny"
+        //                     },
+        //                     "style": "danger",
+        //                     "value": "click_me_0"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        // };
         const textForUser = "Ваш запрос получен, ливборд поправят в течении дня";
+        const denyText = "Ваш запрос отклонен руководителем";
 
         await client.chat.postMessage({
-            channel: officeManager,
-            text: txt
+            channel: leader,
+            blocks: [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "You have a new leaveboard request from @"+user
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Type:* "+target
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*When:* "+date
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Comment:* "+info
+                            }
+                        ]
+                    },
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "action_id": "ApproveLB",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Approve"
+                                },
+                                "style": "primary",
+                                "value": "click_me_1"
+                            },
+                            {
+                                "type": "button",
+                                "action_id": "DenyLB",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Deny"
+                                },
+                                "style": "danger",
+                                "value": "click_me_0"
+                            }
+                        ]
+                    }
+                ]
         });
 
-        await client.chat.postMessage({
-            channel: body.user.id,
-            text: textForUser
-        });
+        app.action('ApproveLB', async ({ack,body, say}) =>{
+            await ack();
 
-        // Add row to googleSheet
-        await doc.loadInfo()
-        const sheet = doc.sheetsByIndex[1]
-        await sheet.addRow({
-            User: user,
-            Date: date,
-            Action: target,
-            Comment: info
-        });
+            await say('Request approved 👍');
 
+            // Add row to googleSheet
+            await doc.loadInfo()
+            const sheet = doc.sheetsByIndex[1]
+            await sheet.addRow({
+                User: user,
+                Date: date,
+                Action: target,
+                Comment: info
+            });
+
+            await client.chat.postMessage({
+                channel: body.user.id,
+                text: textForUser
+            });
+
+            return;
+        })
+
+        app.action('DenyLB', async ({ack,body, say}) =>{
+            await ack();
+
+            await say('Request rejected');
+
+            await client.chat.postMessage({
+                channel: body.user.id,
+                text: denyText
+            });
+
+            return;
+        })
     } catch (e) {
         console.error(e);
     }
@@ -684,15 +807,16 @@ app.action('leaveBoard', async ({ ack, client, body }) => {
                             }
                         },
                         {
+                            "block_id": "leader",
                             "type": "input",
                             "element": {
-                                "type": "multi_users_select",
+                                "type": "users_select",
                                 "placeholder": {
                                     "type": "plain_text",
                                     "text": "Select users",
                                     "emoji": true
                                 },
-                                "action_id": "multi_users_select-action"
+                                "action_id": "multi_users_select"
                             },
                             "label": {
                                 "type": "plain_text",
