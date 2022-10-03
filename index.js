@@ -138,7 +138,7 @@ app.command('/info', async ({ack, say}) => {
     }
 });
 
-app.view('knopka_callback', async ({ack, body, view, client}) => {;
+app.view('knopka_callback', async ({ack, body, view, client}) => {
     try {
         const date = view.state.values.date.datepicker.selected_date;
         const time = view.state.values.time.timepicker.selected_time;
@@ -317,58 +317,6 @@ app.view('leavebord_callback', async ({ack, body, view, client}) => {
         const officeManager = "UPC4TGS2H"; // Кому приходит сообщение
 
         await ack();
-        //const txt = `Пользователь: ${user} \nДата: ${date} \nДействие:  ${target} \nКоментарий: ${info}`;
-        // const txt = {
-        //     "blocks": [
-        //         {
-        //             "type": "section",
-        //             "text": {
-        //                 "type": "mrkdwn",
-        //                 "text": "You have a new leaveboard request from"+user
-        //             }
-        //         },
-        //         {
-        //             "type": "section",
-        //             "fields": [
-        //                 {
-        //                     "type": "mrkdwn",
-        //                     "text": "*Type:* "+target
-        //                 },
-        //                 {
-        //                     "type": "mrkdwn",
-        //                     "text": "*When:* "+date
-        //                 },
-        //                 {
-        //                     "type": "mrkdwn",
-        //                     "text": "*Comment:* "+info
-        //                 }
-        //             ]
-        //         },
-        //         {
-        //             "type": "actions",
-        //             "elements": [
-        //                 {
-        //                     "type": "button",
-        //                     "text": {
-        //                         "type": "plain_text",
-        //                         "text": "Approve"
-        //                     },
-        //                     "style": "primary",
-        //                     "value": "click_me_1"
-        //                 },
-        //                 {
-        //                     "type": "button",
-        //                     "text": {
-        //                         "type": "plain_text",
-        //                         "text": "Deny"
-        //                     },
-        //                     "style": "danger",
-        //                     "value": "click_me_0"
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        // };
         const textForUser = "Ваш запрос получен, ливборд поправят в течении дня";
         const denyText = "Ваш запрос отклонен руководителем";
 
@@ -424,11 +372,11 @@ app.view('leavebord_callback', async ({ack, body, view, client}) => {
                             }
                         ]
                     }
-                ]
+                ],
+            text: "You have a new request",
         });
 
-        app.action('ApproveLB', async ({ack,body, say}) =>{
-            await ack();
+        app.action('ApproveLB', async ({body, say}) =>{
 
             await say('Request approved 👍');
 
@@ -439,19 +387,17 @@ app.view('leavebord_callback', async ({ack, body, view, client}) => {
                 User: user,
                 Date: date,
                 Action: target,
-                Comment: info
+                Comment: info,
+                Approver: leader,
             });
 
             await client.chat.postMessage({
                 channel: body.user.id,
                 text: textForUser
             });
-
-            return;
         })
 
-        app.action('DenyLB', async ({ack,body, say}) =>{
-            await ack();
+        app.action('DenyLB', async ({body, say}) =>{
 
             await say('Request rejected');
 
@@ -459,8 +405,6 @@ app.view('leavebord_callback', async ({ack, body, view, client}) => {
                 channel: body.user.id,
                 text: denyText
             });
-
-            return;
         })
     } catch (e) {
         console.error(e);
@@ -561,7 +505,7 @@ app.command('/correct_lb', async ({command, ack, client}) => {
                                     {
                                         "text": {
                                             "type": "plain_text",
-                                            "text": "Vocation",
+                                            "text": "Vacation",
                                             "emoji": true
                                         },
                                         "value": "Vocation"
@@ -785,7 +729,7 @@ app.action('leaveBoard', async ({ ack, client, body }) => {
                                     {
                                         "text": {
                                             "type": "plain_text",
-                                            "text": "Vocation",
+                                            "text": "Vacation",
                                             "emoji": true
                                         },
                                         "value": "Vocation"
@@ -1046,6 +990,7 @@ app.action('knopka', async ({ ack, client, body }) => {
                         }
                     ]
                 }
+
         });
     } catch (e) {
         console.error(e);
@@ -1059,7 +1004,7 @@ app.action('currency_curse', async ({ ack, say}) => {
     try {
         await currencyService.start();
 
-        await say("Актуальный курс валют на: "+currencyService.getDate()+"\nDate: "+currencyService.getTimestamp()+" Time: "+currencyService.getTime()+"\nUSD - "+currencyService.getActualPrice("USD")+" руб."+"\nEUR - "+currencyService.getActualPrice("EUR")+" руб."+"\nAUD - "+currencyService.getActualPrice("AUD")+" руб.");
+        await say("Актуальный курс валют на: "+currencyService.getDate()+"\nUSD - "+currencyService.getActualPrice("USD")+" руб."+"\nEUR - "+currencyService.getActualPrice("EUR")+" руб."+"\nAUD - "+currencyService.getActualPrice("AUD")+" руб.");
 
     } catch (e) {
         console.error(e);
