@@ -878,6 +878,8 @@ app.action('knopka', async ({ ack, client, body }) => {
     await ack();
 
     const now = new Today();
+    const nowDate = now.getDay();
+    const nowTime = now.getTime();
 
     try {
         await client.views.open({
@@ -914,7 +916,7 @@ app.action('knopka', async ({ ack, client, body }) => {
                             "type": "input",
                             "element": {
                                 "type": "datepicker",
-                                "initial_date": now.getDay(),
+                                "initial_date": nowDate,
                                 "placeholder": {
                                     "type": "plain_text",
                                     "text": "Select a date",
@@ -931,7 +933,7 @@ app.action('knopka', async ({ ack, client, body }) => {
                             "type": "input",
                             "element": {
                                 "type": "timepicker",
-                                "initial_time": now.getTime(),
+                                "initial_time": nowTime,
                                 "placeholder": {
                                     "type": "plain_text",
                                     "text": "Select time",
